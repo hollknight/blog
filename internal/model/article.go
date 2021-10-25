@@ -1,5 +1,8 @@
 package model
 
+import "blog/pkg/app"
+
+// Article database model
 type Article struct {
 	*Model
 	Title         string `json:"title"`
@@ -11,4 +14,10 @@ type Article struct {
 
 func (a Article) TableName() string {
 	return "blog_article"
+}
+
+// ArticleSwagger swagger model
+type ArticleSwagger struct {
+	List  []*Article
+	Pager *app.Pager
 }
