@@ -31,6 +31,11 @@ func init() {
 	}
 }
 
+// @title 博客后端
+// @version 1.0
+// @description 基于煎鱼《go 语言编程之旅》博客后端项目
+// @host localhost:8200
+// @termOfService https://github.com/hollknight/blog
 func main() {
 	gin.SetMode(global.ServerSetting.RunMode)
 	router := routers.NewRouter()
