@@ -7,6 +7,7 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
+	"time"
 )
 
 type Model struct {
@@ -63,4 +64,22 @@ func NewDBEngine(databaseSetting *setting.DatabaseSettings) (*gorm.DB, error) {
 	sqlDB.SetMaxOpenConns(databaseSetting.MaxOpenConns)
 
 	return db, nil
+}
+
+// 创建前更新 CreatedOn 字段的回调函数
+func updateTimeStampForCreateCallback(db *gorm.DB) {
+	if db.Statement.Schema != nil {
+		if field := db.Statement.Schema.LookUpField("CreatedOn"); field != nil {
+			field.Set(db.Statement.ReflectValue, time.Now().Unix())
+		}
+	}
+}
+
+// 更新前更新 ModifiedOn 字段的回调函数
+func updateTimeStampForUpdateCallback(db *gorm.DB) {
+	if db.Statement.Schema != nil {
+		if field := db.Statement.Schema.LookUpField("ModifiedOn"); field != nil {
+			field.Set(db.Statement.ReflectValue, time.Now().Unix())
+		}
+	}
 }

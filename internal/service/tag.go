@@ -6,7 +6,7 @@ type CountTagRequest struct {
 	State uint8  `form:"state,default=1" binding:"oneof=0 1"`
 }
 
-// TagListRequest /api/v1/tags [POST] List
+// TagListRequest /api/v1/tags [GET] List
 type TagListRequest struct {
 	Name  string `form:"name" binding:"max=100"`
 	State uint8  `form:"state,default=1" binding:"oneof=0 1"`
