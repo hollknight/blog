@@ -11,13 +11,13 @@ import (
 )
 
 type Model struct {
-	ID         uint32 `gorm:"primary_key" json:"id"`
-	CreatedBy  string `json:"created_by"`
-	ModifiedBy string `json:"modified_by"`
-	CreatedOn  uint32 `json:"created_on"`
-	ModifiedOn uint32 `json:"modified_on"`
-	DeletedOn  uint32 `json:"deleted_on"`
-	IsDel      uint8  `json:"is_del"`
+	ID         uint32    `gorm:"primary_key" json:"id"`
+	CreatedBy  string    `json:"created_by"`
+	ModifiedBy string    `json:"modified_by"`
+	CreatedOn  time.Time `gorm:"default:'1000-01-01 00:00:00'" json:"created_on"`
+	ModifiedOn time.Time `gorm:"default:'1000-01-01 00:00:00'" json:"modified_on"`
+	DeletedOn  time.Time `gorm:"default:'1000-01-01 00:00:00'" json:"deleted_on"`
+	IsDel      uint8     `json:"is_del"`
 }
 
 func NewDBEngine(databaseSetting *setting.DatabaseSettings) (*gorm.DB, error) {
@@ -60,6 +60,10 @@ func NewDBEngine(databaseSetting *setting.DatabaseSettings) (*gorm.DB, error) {
 	if err != nil {
 		return nil, err
 	}
+	// 注册回调函数
+	db.Callback().Create().Before("gorm:create").Register("update_time_stamp", updateTimeStampForCreateCallback)
+	db.Callback().Update().Before("gorm:update").Register("update_time_stamp", updateTimeStampForUpdateCallback)
+
 	sqlDB.SetMaxIdleConns(databaseSetting.MaxIdleConns)
 	sqlDB.SetMaxOpenConns(databaseSetting.MaxOpenConns)
 
@@ -68,18 +72,20 @@ func NewDBEngine(databaseSetting *setting.DatabaseSettings) (*gorm.DB, error) {
 
 // 创建前更新 CreatedOn 字段的回调函数
 func updateTimeStampForCreateCallback(db *gorm.DB) {
-	if db.Statement.Schema != nil {
-		if field := db.Statement.Schema.LookUpField("CreatedOn"); field != nil {
-			field.Set(db.Statement.ReflectValue, time.Now().Unix())
-		}
-	}
+	db.Statement.SetColumn("created_on", time.Now())
 }
+
+//func registerCallback(db *gorm.DB) {
+//	// 自动添加uuid
+//	err := db.Callback().Create().Before("gorm:create").Register("uuid", func (db *gorm.DB) {
+//		db.Statement.SetColumn("id", NewUlid())
+//	})
+//	if err != nil {
+//		log.Panicf("err: %+v", errx.WithStackOnce(err))
+//	}
+//}
 
 // 更新前更新 ModifiedOn 字段的回调函数
 func updateTimeStampForUpdateCallback(db *gorm.DB) {
-	if db.Statement.Schema != nil {
-		if field := db.Statement.Schema.LookUpField("ModifiedOn"); field != nil {
-			field.Set(db.Statement.ReflectValue, time.Now().Unix())
-		}
-	}
+	db.Statement.SetColumn("modified_on", time.Now())
 }
